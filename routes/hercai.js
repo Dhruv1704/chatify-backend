@@ -20,7 +20,8 @@ router.post('/question',fetchUser,async (req, res) => {
         });
     }catch (e){
         return res.status(500).json({
-            type: 'error'
+            type: 'error',
+            message: "Sorry! Some error occurred, try again later."
         })
     }
 })
