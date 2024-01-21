@@ -4,7 +4,6 @@ const cors = require('cors')
 
 connectToMongo()
 const app = express()
-const server = require('http').Server(app);
 const port = process.env.PORT || 5000;
 
 // socketServer(server)
