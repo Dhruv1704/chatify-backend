@@ -7,7 +7,7 @@ router.post('/question',fetchUser,async (req, res) => {
     try {
         const {question} = req.body
         const herc = new Hercai();
-        await herc.question({model: "v3-beta", content: question}).then(response => {
+        await herc.question({model: "v3-32k", content: question}).then(response => {
             if(response.reply === null){
                 return res.status(400).json({
                     type: 'error'
