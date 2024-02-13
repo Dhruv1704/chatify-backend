@@ -1,12 +1,12 @@
 const connectToMongo = require("./db");
 const express = require('express');
 const cors = require('cors')
-const {initializeApp, applicationDefault} = require("firebase-admin/app");
+const admin = require("firebase-admin");
 
-process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccount = require("./chatify-17-firebase-adminsdk-o0uge-daec6a9290.json");
 
-initializeApp({
-    credential: applicationDefault()
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
 });
 
 
