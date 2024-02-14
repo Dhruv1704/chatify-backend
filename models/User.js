@@ -19,6 +19,10 @@ const userSchema = new Schema({
         type:Array,
         default: []
     },
+    token:{
+        type: String,
+        default: null
+    },
     date: {
         type: Date,
         default: Date.now

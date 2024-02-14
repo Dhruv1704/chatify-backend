@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const fetchUser = require('../middleware/fetchUser')
 const {getMessaging} = require('firebase-admin/messaging');
+const User = require("../models/User")
 
 router.post('/subscribe',fetchUser,async (req,res)=> {
     try {
@@ -66,6 +67,30 @@ router.post('/unsubscribe',fetchUser,async (req,res)=> {
         return res.status(200).json({
             type: 'success',
             message: 'Unsubscribed to FCM'
+        })
+    } catch (e) {
+        return res.status(500).json({
+            type: 'error',
+            message: "Sorry! Some error occurred, try again later."
+        })
+    }
+})
+
+router.put('/updateToken',fetchUser,async (req,res)=> {
+    try {
+        const {token} = req.body;
+        if (!token) {
+            return res.status(400).json({
+                type: 'error',
+                message: "Please provide a valid token"
+            })
+        }
+        const user = await User.findById(req.user.id);
+        user.token = token;
+        await user.save();
+        return res.status(200).json({
+            type: 'success',
+            message: 'Token Updated'
         })
     } catch (e) {
         return res.status(500).json({

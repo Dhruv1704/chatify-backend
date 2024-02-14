@@ -40,7 +40,14 @@ router.post('/addMessage', fetchUser, [
             type
         }
         await Chat.create(message);
-        const topic = receiver;
+        const receiverDoc = await User.findById(receiver);
+        const token = receiverDoc.token;
+        if (!receiverDoc.token) {
+            return res.status(404).json({
+                type: 'error',
+                message: 'Receiver does not exist.'
+            })
+        }
 
         const messageFCM = {
             data: {
@@ -68,7 +75,7 @@ router.post('/addMessage', fetchUser, [
                     image: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c"
                 }
             },
-            topic: topic
+            token:token
         };
 
         // Send a message to devices subscribed to the provided topic.
