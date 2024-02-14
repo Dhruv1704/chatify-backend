@@ -50,7 +50,6 @@ router.post('/addMessage', fetchUser, [
         }
 
         const messageFCM = {
-            priority: "high",
             data: {
                 title: receiverName,
                 body: content,
@@ -79,20 +78,19 @@ router.post('/addMessage', fetchUser, [
             token:token
         };
 
-        // Send a message to devices subscribed to the provided topic.
-        getMessaging().send(messageFCM)
+        getMessaging()
+            .send(messageFCM)
             .then((response) => {
-                // Response is a message ID string.
-                console.log('Successfully sent message:', response);
+                res.status(200).json({
+                    message: "Successfully sent message"
+                });
+                console.log("Successfully sent message:", response);
             })
             .catch((error) => {
-                console.log('Error sending message:', error);
+                res.status(400);
+                res.send(error);
+                console.log("Error sending message:", error);
             });
-
-        return res.status(200).json({
-            type: "success",
-            message: "Chat Added Successfully"
-        })
     }catch (e){
         return res.status(500).json({
             type: "error",
