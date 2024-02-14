@@ -50,6 +50,7 @@ router.post('/addMessage', fetchUser, [
         }
 
         const messageFCM = {
+            priority: "high",
             data: {
                 title: receiverName,
                 body: content,
