@@ -77,7 +77,7 @@ router.post('/createuser', callTokenGenerator, [
             await User.findByIdAndDelete(user._id);
             return res.status(500).json({
                 type: "error",
-                message: 'Cannot get room id.'+req.token
+                message: 'Cannot get room id.'
             });
         }
 
