@@ -69,7 +69,7 @@ router.post('/createuser', callTokenGenerator, [
             }catch (error) {
                 return res.status(500).json({
                     type: "error",
-                    message: 'Cannot get roomCode.'+room_id+" "+req.token+" "+error
+                    message: 'Cannot get room code.'
                 });
             }
         } catch (error) {
