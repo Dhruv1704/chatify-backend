@@ -60,7 +60,12 @@ router.post('/addContact',fetchUser,[
                 })
             }
         }
-        user.contact.push(newContact);
+        const contact = {
+            _id: newContact._id,
+            name: newContact.name,
+            email: newContact.email
+        }
+        user.contact.push(contact);
         await user.save();
         return res.status(200).json({
             type: "success",
