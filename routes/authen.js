@@ -67,12 +67,14 @@ router.post('/createuser', callTokenGenerator, [
                 user.roomCode = roomCode;
                 await user.save();
             }catch (error) {
+                await User.findByIdAndDelete(user._id);
                 return res.status(500).json({
                     type: "error",
                     message: 'Cannot get room code.'
                 });
             }
         } catch (error) {
+            await User.findByIdAndDelete(user._id);
             return res.status(500).json({
                 type: "error",
                 message: 'Cannot get room id.'
