@@ -19,8 +19,12 @@ const userSchema = new Schema({
         type:Array,
         default: []
     },
-    token:{
+    fcm_token:{
         type: String,
+        default: null
+    },
+    roomCode: {
+        type: Object,
         default: null
     },
     date: {

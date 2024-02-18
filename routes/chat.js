@@ -41,8 +41,8 @@ router.post('/addMessage', fetchUser, [
         }
         await Chat.create(message);
         const receiverDoc = await User.findById(receiver);
-        const token = receiverDoc.token;
-        if (!receiverDoc.token) {
+        const token = receiverDoc.fcm_token;
+        if (!receiverDoc.fcm_token) {
             return res.status(404).json({
                 type: 'error',
                 message: 'Receiver does not exist.'

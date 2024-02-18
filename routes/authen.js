@@ -5,11 +5,11 @@ const {body, validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-
+const callTokenGenerator = require('../middleware/callTokenGenerator')
+const axios = require('axios');
 
 //router 1 : Create a user using post request "/api/authen/createuser"  no login
-router.post('/createuser', [
+router.post('/createuser', callTokenGenerator, [
     body('email', 'Enter a valid email').isEmail(),  // validation : express-validator
     body('name', 'Name must be at least 3 characters').isLength({min: 3}),
     body('password', 'Password must be at least 3 characters').isLength({min: 5})
@@ -21,7 +21,6 @@ router.post('/createuser', [
         return res.status(400).json({type: "error", message: errors.array()});
     }
     try {
-
         // checks if the email already exits or not
         let user = await User.findOne({email: req.body.email})
         if (user) {
@@ -37,6 +36,49 @@ router.post('/createuser', [
             email: req.body.email
         })
 
+        // generating room_id and room codes
+
+        const roomData = {
+            "name": user._id,
+            "description": "This is a room for "+user.name,
+            "template_id": process.env.TEMPLATE_ID
+        };
+
+        let room_id = null;
+
+        try {
+            const response = await axios.post('https://api.100ms.live/v2/rooms', roomData,{
+                headers: {
+                    'Authorization': `Bearer ${req.token}`
+                }
+            });
+            room_id=response.data.id;
+            try{
+                const roomCode = {
+                    "room_id": room_id
+                }
+                const response1 = await axios.post(`https://api.100ms.live/v2/room-codes/room/${room_id}`,{},{
+                    headers: {
+                        'Authorization': `Bearer ${req.token}`
+                    }
+                });
+                roomCode[response1.data.data[0].role] = response1.data.data[0].code;
+                roomCode[response1.data.data[1].role] = response1.data.data[1].code;
+                user.roomCode = roomCode;
+                await user.save();
+            }catch (error) {
+                return res.status(500).json({
+                    type: "error",
+                    message: 'Cannot get roomCode.'+room_id+" "+req.token+" "+error
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                type: "error",
+                message: 'Cannot get room id.'
+            });
+        }
+
         // sending webtoken of createUser data
         const data = {
             user: {
@@ -44,6 +86,7 @@ router.post('/createuser', [
             }
         }
         const webToken = jwt.sign(data, process.env.JWT_PASS);
+
         success = true
         res.json({
                 type: "success",

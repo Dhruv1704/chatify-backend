@@ -4,11 +4,12 @@ const cors = require('cors')
 const admin = require("firebase-admin");
 
 const serviceAccount = require("./chatify-17-firebase-adminsdk-o0uge-daec6a9290.json");
+const jwt = require("jsonwebtoken");
+const uuid4 = require("uuid4");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
-
 
 connectToMongo()
 const app = express()

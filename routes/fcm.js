@@ -86,7 +86,7 @@ router.put('/updateToken',fetchUser,async (req,res)=> {
             })
         }
         const user = await User.findById(req.user.id);
-        user.token = token;
+        user.fcm_token = token;
         await user.save();
         return res.status(200).json({
             type: 'success',
