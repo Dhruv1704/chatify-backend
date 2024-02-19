@@ -8,7 +8,7 @@ const {validationResult, body} = require("express-validator");
 
 router.get('/getContact',fetchUser, async (req,res)=>{
     try{
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
         if(!user){
             return res.status(404).json({
                 type:"error",
