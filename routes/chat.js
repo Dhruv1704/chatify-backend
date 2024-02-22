@@ -5,6 +5,7 @@ const Chat = require('../models/Chat')
 const {body, validationResult} = require("express-validator");
 const {getMessaging} = require('firebase-admin/messaging');
 const User = require("../models/User")
+const UserGoogle = require("../models/UserGoogle");
 
 router.get('/getMessage', fetchUser, async (req,res)=>{
     try{
@@ -40,7 +41,7 @@ router.post('/addMessage', fetchUser, [
             type
         }
         await Chat.create(message);
-        const receiverDoc = await User.findById(receiver);
+        const receiverDoc = await User.findById(receiver) || await UserGoogle.findById(receiver);
         const token = receiverDoc.fcm_token;
         if (!receiverDoc.fcm_token) {
             return res.status(404).json({

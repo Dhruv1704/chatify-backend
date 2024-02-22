@@ -3,6 +3,7 @@ const router = express.Router()
 const fetchUser = require('../middleware/fetchUser')
 const {getMessaging} = require('firebase-admin/messaging');
 const User = require("../models/User")
+const UserGoogle = require("../models/UserGoogle");
 
 router.post('/subscribe',fetchUser,async (req,res)=> {
     try {
@@ -85,7 +86,12 @@ router.put('/updateToken',fetchUser,async (req,res)=> {
                 message: "Please provide a valid token"
             })
         }
-        const user = await User.findById(req.user.id);
+        let user;
+        if(req.user.google){
+            user = await UserGoogle.findById(req.user.id);
+        }else{
+            user = await User.findById(req.user.id);
+        }
         user.fcm_token = token;
         await user.save();
         return res.status(200).json({

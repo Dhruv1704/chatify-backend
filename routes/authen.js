@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const callTokenGenerator = require('../middleware/callTokenGenerator')
 const axios = require('axios');
+const UserGoogle = require("../models/UserGoogle");
 
 //router 1 : Create a user using post request "/api/authen/createuser"  no login
 router.post('/createuser', callTokenGenerator, [
@@ -40,24 +41,24 @@ router.post('/createuser', callTokenGenerator, [
 
         const roomData = {
             "name": user._id,
-            "description": "This is a room for "+user.name,
+            "description": "This is a room for " + user.name,
             "template_id": process.env.TEMPLATE_ID
         };
 
         let room_id = null;
 
         try {
-            const response = await axios.post('https://api.100ms.live/v2/rooms', roomData,{
+            const response = await axios.post('https://api.100ms.live/v2/rooms', roomData, {
                 headers: {
                     'Authorization': `Bearer ${req.token}`
                 }
             });
-            room_id=response.data.id;
-            try{
+            room_id = response.data.id;
+            try {
                 const roomCode = {
                     "room_id": room_id
                 }
-                const response1 = await axios.post(`https://api.100ms.live/v2/room-codes/room/${room_id}`,{},{
+                const response1 = await axios.post(`https://api.100ms.live/v2/room-codes/room/${room_id}`, {}, {
                     headers: {
                         'Authorization': `Bearer ${req.token}`
                     }
@@ -66,7 +67,7 @@ router.post('/createuser', callTokenGenerator, [
                 roomCode[response1.data.data[1].role] = response1.data.data[1].code;
                 user.roomCode = roomCode;
                 await user.save();
-            }catch (error) {
+            } catch (error) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(500).json({
                     type: "error",
@@ -84,7 +85,8 @@ router.post('/createuser', callTokenGenerator, [
         // sending webtoken of createUser data
         const data = {
             user: {
-                id: user.id
+                id: user.id,
+                google: false
             }
         }
         const webToken = jwt.sign(data, process.env.JWT_PASS);
@@ -131,7 +133,8 @@ router.post('/login', [
 
         const data = {
             user: {
-                id: user.id
+                id: user.id,
+                google: false
             }
         }
         const webToken = jwt.sign(data, process.env.JWT_PASS);
@@ -150,6 +153,97 @@ router.post('/login', [
             message: 'Some error occurred'
         })
     }
+})
+
+router.post('/google/login', callTokenGenerator, async (req, res) => {
+    const {googleAccessToken} = req.body;
+
+    axios
+        .get("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: {
+                "Authorization": `Bearer ${googleAccessToken}`
+            }
+        })
+        .then(async response => {
+            const firstName = response.data.given_name;
+            const lastName = response.data.family_name || "";
+            const email = response.data.email;
+
+            let user = await UserGoogle.findOne({email})
+
+            if (!user) {
+                user = await UserGoogle.create({
+                    name: (firstName + " " + lastName).trim(),
+                    email: email
+                })
+                const roomData = {
+                    "name": user._id,
+                    "description": "This is a room for " + user.name,
+                    "template_id": process.env.TEMPLATE_ID
+                };
+
+                let room_id = null;
+
+                try {
+                    const response = await axios.post('https://api.100ms.live/v2/rooms', roomData, {
+                        headers: {
+                            'Authorization': `Bearer ${req.token}`
+                        }
+                    });
+                    room_id = response.data.id;
+                    try {
+                        const roomCode = {
+                            "room_id": room_id
+                        }
+                        const response1 = await axios.post(`https://api.100ms.live/v2/room-codes/room/${room_id}`, {}, {
+                            headers: {
+                                'Authorization': `Bearer ${req.token}`
+                            }
+                        });
+                        roomCode[response1.data.data[0].role] = response1.data.data[0].code;
+                        roomCode[response1.data.data[1].role] = response1.data.data[1].code;
+                        user.roomCode = roomCode;
+                        await user.save();
+                    } catch (error) {
+                        await UserGoogle.findByIdAndDelete(user._id);
+                        return res.status(500).json({
+                            type: "error",
+                            message: 'Cannot get room code.'
+                        });
+                    }
+                } catch (error) {
+                    await UserGoogle.findByIdAndDelete(user._id);
+                    return res.status(500).json({
+                        type: "error",
+                        message: 'Cannot get room id.'
+                    });
+                }
+            }
+
+            const data = {
+                user: {
+                    id: user.id,
+                    google: true
+                }
+            }
+
+            const webToken = jwt.sign(data, process.env.JWT_PASS);
+
+            res.status(200).json({
+                type: "success",
+                message: `Welcome Back! ${user.name.split(" ")[0]}`,
+                webToken,
+                name: user.name,
+                contact: user.contact
+            })
+
+        })
+        .catch(err => {
+            res.status(500).json({
+                type: "error",
+                message: 'Some error occurred'
+            })
+        })
 })
 
 module.exports = router;

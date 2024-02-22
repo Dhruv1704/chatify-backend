@@ -3,12 +3,18 @@ const router = express.Router()
 const fetchUser = require('../middleware/fetchUser')
 const User = require("../models/User")
 const {validationResult, body} = require("express-validator");
+const UserGoogle = require("../models/UserGoogle");
 
 // get details of user(name and email) and their contacts
 
 router.get('/getContact',fetchUser, async (req,res)=>{
     try{
-        const user = await User.findById(req.user.id);
+        let user;
+        if(req.user.google){
+            user = await UserGoogle.findById(req.user.id);
+        } else{
+            user = await User.findById(req.user.id);
+        }
         if(!user){
             return res.status(404).json({
                 type:"error",
@@ -30,15 +36,15 @@ router.get('/getContact',fetchUser, async (req,res)=>{
     }
 })
 router.post('/addContact',fetchUser,[
-    body('contactEmail', 'Enter a valid email').isEmail()
+    body('contactId', 'Enter a valid token').exists()
 ],async (req, res)=>{
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({type: "error", message: errors.array()});
         }
-        const {contactEmail} = req.body;
-        const newContact = await User.findOne({email: contactEmail});
+        const {contactId} = req.body;
+        const newContact = await User.findById(contactId) || await UserGoogle.findById(contactId);
         if (!newContact) {
             return res.status(404).json({
                 type: 'error',
@@ -48,12 +54,12 @@ router.post('/addContact',fetchUser,[
         if(newContact._id.toString() === req.user.id){
             return res.status(404).json({
                 type:'error',
-                message: 'This is your email.'
+                message: 'This is your token.'
             })
         }
-        const user = await User.findById(req.user.id)
+        const user = await User.findById(req.user.id) || await UserGoogle.findById(req.user.id);
         for(const contact of user.contact){
-            if(contact.email === contactEmail){
+            if(contact.id === contactId){
                 return res.status(200).json({
                     type: "error",
                     message: "Contact is already present"
