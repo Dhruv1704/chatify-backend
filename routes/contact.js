@@ -27,6 +27,7 @@ router.get('/getContact',fetchUser, async (req,res)=>{
             email: user.email,
             name : user.name,
             id: req.user.id,
+            roomCode: user.roomCode
         })
     }catch (error) {
         return res.status(500).json({
