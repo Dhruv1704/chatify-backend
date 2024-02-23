@@ -1,45 +1,19 @@
 const express = require('express')
 const router = express.Router()
 const fetchUser = require('../middleware/fetchUser')
-const Chat = require('../models/Chat')
-const {body, validationResult} = require("express-validator");
-const {getMessaging} = require('firebase-admin/messaging');
 const User = require("../models/User")
 const UserGoogle = require("../models/UserGoogle");
+const CallLogs = require("../models/CallLogs");
+const {getMessaging} = require("firebase-admin/messaging");
 
-router.get('/getMessage', fetchUser, async (req,res)=>{
+router.post('/',  fetchUser, async (req, res) => {
     try{
-        const chats = await Chat.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] })
-        return res.status(200).json({
-            type: "success",
-            chats
-        })
-    }catch (e){
-        return res.status(500).json({
-            type: "error",
-            message: "Internal Server Error"
-        })
-    }
-})
-
-router.post('/addMessage', fetchUser, [
-    body('receiver', 'Please enter a receiver').exists(),
-    body('content', 'Please enter a message').exists(),
-    body('type', 'Please enter a type').exists()
-], async (req,res)=>{
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({type: "error", message: errors.array()});
-        }
-        const { receiver, content, type} = req.body;
-        const message = {
-            sender: req.user.id,
+        const {roomCode, type, receiver} = req.body;
+        const callLog = await CallLogs.create({
+            type,
             receiver,
-            content,
-            type
-        }
-        await Chat.create(message);
+            sender: req.user.id
+        })
         const receiverDoc = await User.findById(receiver) || await UserGoogle.findById(receiver);
         const sender = await User.findById(req.user.id) || await UserGoogle.findById(req.user.id);
         const token = receiverDoc.fcm_token;
@@ -50,13 +24,11 @@ router.post('/addMessage', fetchUser, [
             })
         }
 
-        const senderName = sender.name;
-
         const messageFCM = {
             data: {
-                type:"message",
-                title: senderName,
-                body: content,
+                type: type,
+                title: sender.name,
+                body: roomCode,
                 image: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c"
             },
             android: {
@@ -91,44 +63,20 @@ router.post('/addMessage', fetchUser, [
             .send(messageFCM)
             .then((response) => {
                 res.status(200).json({
-                    message: "Successfully sent message"
+                    message: "Successfully added callLog"
                 });
-                console.log("Successfully sent message:", response);
             })
             .catch((error) => {
                 res.status(400);
                 res.send(error);
                 console.log("Error sending message:", error);
             });
-    }catch (e){
-        return res.status(500).json({
+    }catch (e) {
+        res.json({
             type: "error",
-            message: "Internal Server Error"
+            message: "Some error occurred"
         })
     }
 })
 
-//Also make for multiple messages.
-router.delete('/deleteMessage/:id', fetchUser, async (req, res)=>{
-    try{
-        const id = req.params.id;
-        await Chat.findByIdAndDelete(id);
-        return res.status(200).json({
-            type: "success",
-            message: "Chat Deleted Successfully"
-        })
-    }catch (e){
-        return res.status(500).json({
-            type: "error",
-            message: "Internal Server Error"
-        })
-    }
-})
-
-
-module.exports = router
-
-
-
-// image: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c",
-//     badge: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c",
+module.exports = router;

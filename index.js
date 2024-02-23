@@ -27,6 +27,7 @@ app.use('/api/contact', require('./routes/contact'));
 app.use('/api/chat', require('./routes/chat'))
 app.use('/api/ai', require('./routes/hercai'))
 app.use('/api/fcm', require('./routes/fcm'))
+app.use('/api/call', require('./routes/call'))
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
