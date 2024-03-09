@@ -79,4 +79,19 @@ router.post('/',  fetchUser, async (req, res) => {
     }
 })
 
+router.get('/callLogs', fetchUser, async (req, res)=>{
+    try{
+        const callLogs = await CallLogs.findById(req.user.id).sort({ timeStamp: -1 }).limit(15);
+        res.json({
+            type:"success",
+            callLogs
+        })
+    }catch (e){
+        res.json({
+            type: "error",
+            message: "Some error occurred"
+        })
+    }
+})
+
 module.exports = router;
