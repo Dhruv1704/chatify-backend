@@ -81,7 +81,12 @@ router.post('/',  fetchUser, async (req, res) => {
 
 router.get('/callLogs', fetchUser, async (req, res)=>{
     try{
-        const callLogs = await CallLogs.findById(req.user.id).sort({ timeStamp: -1 }).limit(15);
+        const callLogs = await CallLogs.find({
+            $or:[
+                {sender: req.user.id},
+                {receiver: req.user.id}
+            ]
+        }).sort({ timeStamp: -1 }).limit(15);
         res.json({
             type:"success",
             callLogs
