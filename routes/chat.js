@@ -23,24 +23,16 @@ router.get('/getMessage', fetchUser, async (req,res)=>{
 })
 
 router.post('/addMessage', fetchUser, [
-    body('receiver', 'Please enter a receiver').exists(),
-    body('content', 'Please enter a message').exists(),
-    body('type', 'Please enter a type').exists()
+    body('message', 'Please enter a message').exists()
 ], async (req,res)=>{
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({type: "error", message: errors.array()});
         }
-        const { receiver, content, type} = req.body;
-        const message = {
-            sender: req.user.id,
-            receiver,
-            content,
-            type
-        }
+        const { message} = req.body;
         await Chat.create(message);
-        const receiverDoc = await User.findById(receiver) || await UserGoogle.findById(receiver);
+        const receiverDoc = await User.findById(message.receiver) || await UserGoogle.findById(message.receiver);
         const sender = await User.findById(req.user.id) || await UserGoogle.findById(req.user.id);
         const token = receiverDoc.fcm_token;
         if (!receiverDoc.fcm_token) {
@@ -56,7 +48,7 @@ router.post('/addMessage', fetchUser, [
             data: {
                 type:"message",
                 title: senderName,
-                body: content,
+                body: message.content,
                 image: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c"
             },
             android: {

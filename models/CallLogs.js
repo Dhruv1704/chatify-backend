@@ -12,6 +12,14 @@ const callLogSchema = new Schema({
         required: true,
         ref:'user'
     },
+    sender_name:{
+        type: String,
+        required:true
+    },
+    receiver_name:{
+        type:String,
+        required:true
+    },
     type:{
         type: String,
         required: true

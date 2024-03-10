@@ -8,14 +8,9 @@ const {getMessaging} = require("firebase-admin/messaging");
 
 router.post('/',  fetchUser, async (req, res) => {
     try{
-        const {roomCode, type, receiver} = req.body;
-        const callLog = await CallLogs.create({
-            type,
-            receiver,
-            sender: req.user.id
-        })
-        const receiverDoc = await User.findById(receiver) || await UserGoogle.findById(receiver);
-        const sender = await User.findById(req.user.id) || await UserGoogle.findById(req.user.id);
+        const {message} = req.body;
+        const callLog = await CallLogs.create(message)
+        const receiverDoc = await User.findById(message.receiver) || await UserGoogle.findById(message.receiver);
         const token = receiverDoc.fcm_token;
         if (!receiverDoc.fcm_token) {
             return res.status(404).json({
@@ -26,8 +21,8 @@ router.post('/',  fetchUser, async (req, res) => {
 
         const messageFCM = {
             data: {
-                type: type,
-                title: sender.name,
+                type: message.type,
+                title: message.sender_name,
                 body: roomCode,
                 image: "https://firebasestorage.googleapis.com/v0/b/chatify-17.appspot.com/o/app-image%2Ficon_x512-modified.png?alt=media&token=3192bd5a-4a8b-4598-826f-cd8339c3ca0c"
             },
