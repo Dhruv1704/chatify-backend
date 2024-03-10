@@ -24,7 +24,7 @@ const callLogSchema = new Schema({
         type: String,
         required: true
     },
-    timeStamp:{
+    timestamp:{
         type: Date,
         default: Date.now
     }
