@@ -82,7 +82,7 @@ router.get('/callLogs', fetchUser, async (req, res)=>{
                 {sender: req.user.id},
                 {receiver: req.user.id}
             ]
-        }).sort({ timeStamp: 1 }).limit(15);
+        }).sort({ timeStamp: -1 }).limit(10);
         res.json({
             type:"success",
             callLogs
