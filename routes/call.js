@@ -53,6 +53,7 @@ router.post('/',  fetchUser, async (req, res) => {
             },
             token:token
         };
+        console.log(messageFCM)
 
         getMessaging()
             .send(messageFCM)
@@ -81,7 +82,7 @@ router.get('/callLogs', fetchUser, async (req, res)=>{
                 {sender: req.user.id},
                 {receiver: req.user.id}
             ]
-        }).sort({ timeStamp: -1 }).limit(15);
+        }).sort({ timeStamp: 1 }).limit(15);
         res.json({
             type:"success",
             callLogs
