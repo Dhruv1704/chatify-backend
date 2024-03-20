@@ -9,12 +9,25 @@ const UserGoogle = require("../models/UserGoogle");
 
 router.get('/getMessage', fetchUser, async (req,res)=>{
     try{
-        const chats = await Chat.find({ $or: [{ sender: req.user.id }, { receiver: req.user.id }] })
+        const id = req.user.id;
+        const chats = await Chat.find({
+            $or: [
+                { sender: id },
+                { receiver: id }
+            ],
+            $and: [ // Include chats where:
+                { $or: [ // Either:
+                        { permaDelete: false }, // permaDelete is false
+                        { permaDelete: true, InaccessibleBy: { $ne: id } } // OR permaDelete is true and InaccessibleBy is not equal to id
+                    ]}
+            ]
+        });
         return res.status(200).json({
             type: "success",
             chats
         })
     }catch (e){
+        console.log(e)
         return res.status(500).json({
             type: "error",
             message: "Internal Server Error"
@@ -101,10 +114,18 @@ router.post('/addMessage', fetchUser, [
 })
 
 //Also make for multiple messages.
-router.delete('/deleteMessage/:id', fetchUser, async (req, res)=>{
+router.delete('/deleteMessage', fetchUser, async (req, res)=>{
     try{
-        const id = req.params.id;
-        await Chat.findByIdAndDelete(id);
+        const {chats} = req.body;
+        chats.forEach(async (item)=> {
+            const chat = await Chat.findById(item);
+            if(chat.permaDelete) await Chat.findByIdAndDelete(item);
+            else{
+                chat.permaDelete = true;
+                chat.InaccessibleBy = item;
+                await chat.save();
+            }
+        })
         return res.status(200).json({
             type: "success",
             message: "Chat Deleted Successfully"

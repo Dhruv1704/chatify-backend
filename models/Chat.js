@@ -20,6 +20,15 @@ const chatSchema = new Schema({
       type: String,
       required: true
     },
+    permaDelete:{
+        type: Boolean,
+        default: false,
+        required: false
+    },
+    InaccessibleBy:{
+        type: mongoose.Schema.Types.ObjectId,
+        required:false
+    },
     timestamp: {
         type: Date,
         default: Date.now
