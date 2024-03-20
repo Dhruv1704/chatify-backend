@@ -122,7 +122,7 @@ router.delete('/deleteMessage', fetchUser, async (req, res)=>{
             if(chat.permaDelete) await Chat.findByIdAndDelete(item);
             else{
                 chat.permaDelete = true;
-                chat.InaccessibleBy = item;
+                chat.InaccessibleBy = req.user.id;
                 await chat.save();
             }
         })
