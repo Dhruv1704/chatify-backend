@@ -44,7 +44,7 @@ router.post('/addMessage', fetchUser, [
             return res.status(400).json({type: "error", message: errors.array()});
         }
         const { message} = req.body;
-        await Chat.create(message);
+        const chat = await Chat.create(message);
         const receiverDoc = await User.findById(message.receiver) || await UserGoogle.findById(message.receiver);
         const sender = await User.findById(req.user.id) || await UserGoogle.findById(req.user.id);
         const token = receiverDoc.fcm_token;
@@ -96,7 +96,8 @@ router.post('/addMessage', fetchUser, [
             .send(messageFCM)
             .then((response) => {
                 res.status(200).json({
-                    message: "Successfully sent message"
+                    message: "Successfully sent message",
+                    chat
                 });
                 console.log("Successfully sent message:", response);
             })
