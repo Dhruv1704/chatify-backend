@@ -3,7 +3,9 @@ const express = require('express');
 const cors = require('cors')
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./chatify-17-firebase-adminsdk-o0uge-a3517e4ee3.json");
+const serviceAccount =JSON.parse(
+    Buffer.from(process.env.FIREBASE_SERVICE_KEY ? process.env.FIREBASE_SERVICE_KEY : "", "base64").toString()
+);
 
 
 admin.initializeApp({
