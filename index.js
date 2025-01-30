@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors')
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./chatify-17-firebase-adminsdk-o0uge-daec6a9290.json");
+const serviceAccount = require("./chatify-17-firebase-adminsdk-o0uge-a3517e4ee3.json");
 
 
 admin.initializeApp({
