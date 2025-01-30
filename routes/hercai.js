@@ -3,30 +3,67 @@ const router = express.Router()
 const fetchUser = require('../middleware/fetchUser')
 const {Hercai} = require('hercai');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const AiText = require("../models/AiText")
 
-router.post('/question',fetchUser,async (req, res) => {
+router.get('/getAiChat', fetchUser, async (req, res)=>{
+   try {
+       const chats = await AiText.findOne({user_id:req.user.id})
+       return res.status(200).json({
+           type : 'success',
+           aiChat: chats.history
+       })
+   }catch (e){
+       console.log(e)
+       return res.status(500).json({
+           type: 'error',
+           message: "Sorry! Some error occurred, try again later."
+       })
+   }
+})
+
+router.delete('/deleteAiChat', fetchUser, async (req, res)=>{
+   try {
+       await AiText.findOneAndDelete({user_id:req.user.id})
+       return res.status(200).json({
+           type : 'success'
+       })
+   }catch (e){
+       console.log(e)
+       return res.status(500).json({
+           type: 'error',
+           message: "Sorry! Some error occurred, try again later."
+       })
+   }
+})
+
+router.put('/question',fetchUser,async (req, res) => {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const {question} = req.body
+        const {history, question} = req.body
         const chat = model.startChat({
-            history: [
-                {
-                    role: "user",
-                    parts: [{ text: "Hello" }],
-                },
-                {
-                    role: "model",
-                    parts: [{ text: "Great to meet you. What would you like to know?" }],
-                },
-            ],
+            history
         });
 
         let result = await chat.sendMessage(question);
-        console.log(result.response.text());
+        const message =
+            {
+                role: "model",
+                parts: [{ text: result.response.text() }],
+            }
+        const dbHistory = await AiText.findOne({user_id: req.user.id} )
+        if(dbHistory){
+            dbHistory.history = history
+            await dbHistory.save()
+        }else{
+            await AiText.create({
+                user_id: req.user.id,
+                history
+            })
+        }
         return res.status(200).json({
             type : 'success',
-            message: result.response.text()
+            message
         })
     }catch (e){
         console.log(e)
@@ -41,8 +78,8 @@ router.post('/drawImage',fetchUser, async (req, res) => {
     try {
         const {image} = req.body;
         const herc = new Hercai();
-        await herc.drawImage({model: "lexica", prompt: image}).then(response => {
-            if (response.url === null) {
+        await herc.drawImage({model: "v3", prompt: image}).then(response => {
+            if (response.url === null || response===undefined) {
                 return res.status(400).json({
                     type: 'error'
                 })
