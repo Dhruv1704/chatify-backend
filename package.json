@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -16,7 +17,7 @@
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "firebase-admin": "^12.0.0",
-    "hercai": "^12.2.0",
+    "hercai": "^12.4.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.0",
     "socket.io": "^4.7.2",
