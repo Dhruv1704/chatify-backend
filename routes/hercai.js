@@ -39,28 +39,22 @@ router.delete('/deleteAiChat', fetchUser, async (req, res)=>{
 router.put('/question',fetchUser,async (req, res) => {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API);
-        const model = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.7-flash" });
         const {history, question} = req.body
         const chat = model.startChat({
             history
         });
-
         let result = await chat.sendMessage(question);
         const message =
             {
                 role: "model",
                 parts: [{ text: result.response.text() }],
             }
-        const dbHistory = await AiText.findOne({user_id: req.user.id} )
-        if(dbHistory){
-            dbHistory.history = history
-            await dbHistory.save()
-        }else{
-            await AiText.create({
-                user_id: req.user.id,
-                history
-            })
-        }
+        const updatedHistory = [
+            ...history,
+            { role: "user", parts: [{ text: question }] },
+            message
+        ];
         return res.status(200).json({
             type : 'success',
             message
