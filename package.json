@@ -4,6 +4,8 @@
   "description": "Backend for chatify app.It is a mern app which allows messaging, voice/video calls and allow the use of ai chatbot.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
